@@ -47,6 +47,9 @@
 #include "mpu_reg.h"
 #include "mpu6050.h"
 #include "sensor_notify.h"
+#include "sci2a.h"
+
+
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -85,6 +88,8 @@ static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;
 
 static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
 
+
+sci2a_pfn *p_sci2a;
 
 /**@brief Function for assert macro callback.
  *
@@ -507,7 +512,7 @@ struct a{
 
 #define LED_TEST 19
 
-nrf_gpio_pin_pull_t config = NRF_GPIO_PIN_NOPULL ; 
+
 
 int main(void)
 {
@@ -519,7 +524,8 @@ int main(void)
 	
 //Ìí¼ÓµÄ	
 	nrf_gpio_cfg_output(LED_TEST);
-	nrf_gpio_cfg_input(10,NRF_GPIO_PIN_NOPULL);
+	p_sci2a = sci2a_init();
+	
 	nrf_gpio_pin_set(LED_TEST);
 	
 	create_sensor_timer();

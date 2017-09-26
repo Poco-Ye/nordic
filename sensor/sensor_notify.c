@@ -3,6 +3,7 @@
 #include "mpu6050.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
+#include "sci2a.h"
 extern ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 extern uint8_t accel[];
 extern uint8_t gyro[];
@@ -13,14 +14,32 @@ extern uint8_t gyro[];
 static app_timer_id_t accel_gyro_timer;
 static app_timer_id_t tempe_press_light_timer;
 
+extern sci2a_pfn *p_sci2a;
+uint8_t zifu[10] = {'0','1','2','3','4','5','6','7','8','9'};
 
+static uint8_t change(uint8_t x)
+{
+   for(int i=0;i<10;i++)
+	 {
+	    if(x==i)
+			return zifu[i];
+	 }
+   return 0;
+}
 static void mpu6050_timeout_handler(){
 
-	get_mpu6050data();
-	if(nrf_gpio_pin_read(10)==0)
-	ble_nus_string_send(&m_nus, "0", 1, m_nus.accel_handles.value_handle);
-	else
-	ble_nus_string_send(&m_nus, "1", 1, m_nus.accel_handles.value_handle);
+	//get_mpu6050data();
+	uint16_t sum;
+	uint8_t tx[5];
+	
+	sum = p_sci2a->__p_getdata(0x81);
+	tx[0] = change(sum/10000);
+	tx[1] = change(sum%10000/1000);
+	tx[2] = change(sum%1000/100);
+	tx[3] = change(sum%100/10);
+	tx[4] = change(sum%10);
+	
+	ble_nus_string_send(&m_nus, tx, 5, m_nus.accel_handles.value_handle);
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
 }
 
