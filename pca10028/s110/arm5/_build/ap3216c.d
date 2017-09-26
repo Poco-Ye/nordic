@@ -1,0 +1,15 @@
+.\_build\ap3216c.o: ..\..\..\sensor\ap3216c.c
+.\_build\ap3216c.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\_build\ap3216c.o: ..\..\..\iic\twi_master.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_Drivers\3.0.1\hal\nrf_delay.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\nrf.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\nrf51.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include\core_cm0.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include\core_cmInstr.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include\core_cmFunc.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\system_nrf51.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\nrf51_bitfields.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\nrf51_deprecated.h
+.\_build\ap3216c.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.5.0\Device\Include\compiler_abstraction.h
