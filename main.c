@@ -89,7 +89,8 @@ static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
 
 
-sci2a_pfn *p_sci2a;
+
+sci2a_handle* __p_sci2a_handle;
 
 /**@brief Function for assert macro callback.
  *
@@ -524,7 +525,7 @@ int main(void)
 	
 //Ìí¼ÓµÄ	
 	nrf_gpio_cfg_output(LED_TEST);
-	p_sci2a = sci2a_init();
+	__p_sci2a_handle = sci2a_init();
 	
 	nrf_gpio_pin_set(LED_TEST);
 	
@@ -556,8 +557,9 @@ int main(void)
     {
 			
 		app_sched_execute();
-    power_manage();
 			
+    power_manage();
+		
     }
 
 }

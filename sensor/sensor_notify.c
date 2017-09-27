@@ -14,8 +14,11 @@ extern uint8_t gyro[];
 static app_timer_id_t accel_gyro_timer;
 static app_timer_id_t tempe_press_light_timer;
 
-extern sci2a_pfn *p_sci2a;
+
 uint8_t zifu[10] = {'0','1','2','3','4','5','6','7','8','9'};
+
+
+extern sci2a_handle* __p_sci2a_handle;
 
 static uint8_t change(uint8_t x)
 {
@@ -32,12 +35,15 @@ static void mpu6050_timeout_handler(){
 	uint16_t sum;
 	uint8_t tx[5];
 	
-	sum = p_sci2a->__p_getdata(0x81);
+  __p_sci2a_handle->pfn->__p_getdistance();
+	sum = __p_sci2a_handle->touch_sum ;
+	
 	tx[0] = change(sum/10000);
 	tx[1] = change(sum%10000/1000);
 	tx[2] = change(sum%1000/100);
 	tx[3] = change(sum%100/10);
 	tx[4] = change(sum%10);
+	
 	
 	ble_nus_string_send(&m_nus, tx, 5, m_nus.accel_handles.value_handle);
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
