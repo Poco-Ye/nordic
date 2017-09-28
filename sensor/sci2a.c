@@ -231,6 +231,14 @@ static uint16_t read_sci2a(uint8_t address)
 static void getdistance(void)
 {
      uint16_t i ;
+	  nrf_gpio_cfg_output(SDA);
+	  nrf_gpio_cfg_output(SCL);
+	  nrf_gpio_pin_set(SDA);
+	  nrf_gpio_pin_set(SCL);
+		nrf_gpio_cfg_output(SDA2);
+	  nrf_gpio_cfg_output(SCL2);
+	  nrf_gpio_pin_set(SDA2);
+	  nrf_gpio_pin_set(SCL2);
 	   if(handle.handle_id==0)
 		 {
 				 sum = read_sci2a(0x81);

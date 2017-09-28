@@ -33,19 +33,21 @@ static void mpu6050_timeout_handler(){
 
 	//get_mpu6050data();
 	uint16_t sum;
-	uint8_t tx[5];
+	uint8_t tx[7];
 	
   __p_sci2a_handle->pfn->__p_getdistance();
 	sum = __p_sci2a_handle->touch_sum ;
 	
-	tx[0] = change(sum/10000);
-	tx[1] = change(sum%10000/1000);
-	tx[2] = change(sum%1000/100);
+	//tx[0] = change(sum/10000);
+	tx[0] = change(sum%10000/1000);
+	tx[1] = change(sum%1000/100);
+	tx[2] = '.';
 	tx[3] = change(sum%100/10);
 	tx[4] = change(sum%10);
+	tx[5] = 'c';
+  tx[6] = 'm';	
 	
-	
-	ble_nus_string_send(&m_nus, tx, 5, m_nus.accel_handles.value_handle);
+	ble_nus_string_send(&m_nus, tx, 7, m_nus.accel_handles.value_handle);
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
 }
 
