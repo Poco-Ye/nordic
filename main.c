@@ -48,7 +48,7 @@
 #include "mpu6050.h"
 #include "sensor_notify.h"
 #include "sci2a.h"
-
+#include "uart.h"
 
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
@@ -526,20 +526,16 @@ int main(void)
 //添加的	
 	nrf_gpio_cfg_output(LED_TEST);
 	__p_sci2a_handle = sci2a_init();
+		
 	
 	nrf_gpio_pin_set(LED_TEST);
 	
 	create_sensor_timer();
-	while(twi_master_init()!=true){
-		nrf_gpio_pin_clear(LED_TEST);
-	}
-	nrf_delay_ms(100);//不延迟的话，发现断电后重新上后6050初始化可以成功但是读取出来的数据都为0
-	while(mpu6050_init()!= true){
-  nrf_gpio_pin_clear(LED_TEST);
-	}
 
 	
 	nrf_gpio_pin_set(LED_TEST);
+
+  UART_Init();
 
     ble_stack_init();
     gap_params_init();
@@ -559,6 +555,7 @@ int main(void)
 		app_sched_execute();
 			
     power_manage();
+		UART_Put(100);
 		
     }
 

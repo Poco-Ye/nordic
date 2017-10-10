@@ -4,6 +4,7 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "sci2a.h"
+#include "uart.h"
 extern ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 extern uint8_t accel[];
 extern uint8_t gyro[];
@@ -48,6 +49,7 @@ static void mpu6050_timeout_handler(){
   tx[6] = 'm';	
 	
 	ble_nus_string_send(&m_nus, tx, 7, m_nus.accel_handles.value_handle);
+
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
 }
 

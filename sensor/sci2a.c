@@ -2,10 +2,10 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 
-#define  SDA  13
-#define  SCL  14
-#define  SDA2 11
-#define  SCL2 12
+#define  SDA  15
+#define  SCL  16
+#define  SDA2 13
+#define  SCL2 14
 #define  DISTANCE  1310
 
 
