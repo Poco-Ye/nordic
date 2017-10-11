@@ -70,7 +70,9 @@ struct ble_nus_s
 	ble_gatts_char_handles_t gyro_handles;            
 	ble_gatts_char_handles_t press_handles;     
 	ble_gatts_char_handles_t tempe_handles;     
-	ble_gatts_char_handles_t light_handles;     	
+	ble_gatts_char_handles_t light_handles;
+  ble_gatts_char_handles_t rx_handles; 
+  ble_gatts_char_handles_t tx_handles;	
 	
 	uint16_t                 conn_handle;             /**< Handle of the current connection (as provided by the S110 SoftDevice). BLE_CONN_HANDLE_INVALID if not in a connection. */
     bool                     is_accel_NTFenabled; /**< Variable to indicate if the peer has enabled notification of the RX characteristic.*/

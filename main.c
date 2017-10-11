@@ -82,6 +82,11 @@
 #define QUEUE_SIZE						15
 
 
+#define LED_GREEN      22
+#define LED_BLUE       22
+#define LED_RED        23
+#define RELAY          06
+
 
  ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
@@ -152,11 +157,24 @@ static void gap_params_init(void)
 /**@snippet [Handling the data received over BLE] */
 static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t length)
 {
-    for (uint32_t i = 0; i < length; i++)
-    {
-        while(app_uart_put(p_data[i]) != NRF_SUCCESS);
-    }
-    while(app_uart_put('\n') != NRF_SUCCESS);
+	/*if(((p_data[0]=='O')||(p_data[0]=='o'))&&((p_data[1]=='N')||(p_data[1]=='n')))  //如果收到的数据为“ON”或者"on"
+		{
+		 nrf_gpio_pin_clear(LED_GREEN );    //工作指示绿灯亮
+		 nrf_gpio_pin_set(LED_RED );        //工作指示红灯灭
+		 nrf_gpio_pin_clear(RELAY);         //继电器闭合
+		}
+		
+		 if(((p_data[0]=='O')||(p_data[0]=='o'))&&((p_data[1]=='F')||(p_data[1]=='f'))&&((p_data[2]=='F')||(p_data[2]=='f')))
+		{
+		 //如果收到的数据为“OFF”或者"off"
+		 nrf_gpio_pin_clear(LED_RED);     //工作指示红灯亮
+		 nrf_gpio_pin_set(LED_GREEN );    //工作指示绿灯灭
+		 nrf_gpio_pin_set(RELAY);         //继电器断开
+		}*/
+		
+		UART_Put(p_data[0]);
+	  UART_Put(p_data[1]);
+	
 }
 /**@snippet [Handling the data received over BLE] */
 
@@ -555,7 +573,7 @@ int main(void)
 		app_sched_execute();
 			
     power_manage();
-		UART_Put(100);
+		
 		
     }
 
