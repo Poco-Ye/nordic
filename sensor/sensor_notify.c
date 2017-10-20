@@ -5,6 +5,9 @@
 #include "nrf_delay.h"
 #include "sci2a.h"
 #include "uart.h"
+#include "hx711.h"
+
+
 extern ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 extern uint8_t accel[];
 extern uint8_t gyro[];
@@ -34,21 +37,29 @@ static void mpu6050_timeout_handler(){
 
 	//get_mpu6050data();
 	uint16_t sum;
-	uint8_t tx[7];
+	uint32_t weig;
+	uint8_t tx[10];
 	
-  __p_sci2a_handle->pfn->__p_getdistance();
-	sum = __p_sci2a_handle->touch_sum ;
-	
-	//tx[0] = change(sum/10000);
-	tx[0] = change(sum%10000/1000);
-	tx[1] = change(sum%1000/100);
-	tx[2] = '.';
+  //__p_sci2a_handle->pfn->__p_getdistance();
+	//sum = __p_sci2a_handle->touch_sum ;
+	weig = hx711_read();
+	sum = weig>>16; 
+	tx[0] = change(sum/10000);
+	tx[1] = change(sum%10000/1000);
+	tx[2] = change(sum%1000/100);
+	//tx[2] = '.';
 	tx[3] = change(sum%100/10);
 	tx[4] = change(sum%10);
-	tx[5] = 'c';
-  tx[6] = 'm';	
+	sum = weig;
+	tx[5] = change(sum/10000);
+	tx[6] = change(sum%10000/1000);
+	tx[7] = change(sum%1000/100);
+	tx[8] = change(sum%100/10);
+	tx[9] = change(sum%10);
+	//tx[10] = 'c';
+  //tx[6] = 'm';	
 	
-	ble_nus_string_send(&m_nus, tx, 7, m_nus.accel_handles.value_handle);
+	ble_nus_string_send(&m_nus, tx,10, m_nus.accel_handles.value_handle);
 
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
 }
