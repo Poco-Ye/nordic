@@ -9,7 +9,7 @@
 
 uint32_t hx711_read(void)
 {
-  uint32_t Count;
+  uint32_t Count = 0;
   uint8_t i;
 	
 	nrf_gpio_cfg_output(ADDO);

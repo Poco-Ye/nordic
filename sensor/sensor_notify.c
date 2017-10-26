@@ -11,8 +11,8 @@
 extern ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 extern uint8_t accel[];
 extern uint8_t gyro[];
-
-
+uint8_t data_i = 0;
+double data1 = 0,data2 = 0;
 
 
 static app_timer_id_t accel_gyro_timer;
@@ -36,31 +36,31 @@ static uint8_t change(uint8_t x)
 static void mpu6050_timeout_handler(){
 
 	//get_mpu6050data();
-	uint16_t sum;
-	uint32_t weig;
-	uint8_t tx[10];
+	uint32_t weig = 0;
+	uint8_t tx[8];
 	
   //__p_sci2a_handle->pfn->__p_getdistance();
 	//sum = __p_sci2a_handle->touch_sum ;
-	weig = hx711_read();
-	sum = weig>>16; 
-	tx[0] = change(sum/10000);
-	tx[1] = change(sum%10000/1000);
-	tx[2] = change(sum%1000/100);
-	//tx[2] = '.';
-	tx[3] = change(sum%100/10);
-	tx[4] = change(sum%10);
-	sum = weig;
-	tx[5] = change(sum/10000);
-	tx[6] = change(sum%10000/1000);
-	tx[7] = change(sum%1000/100);
-	tx[8] = change(sum%100/10);
-	tx[9] = change(sum%10);
-	//tx[10] = 'c';
-  //tx[6] = 'm';	
+	weig = hx711_read()/100; 
+  data1 = weig;
+	data2 = data2 + data1/10 ; 
+	data_i = data_i + 1 ;
+  if(data_i > 9)
+	{		
+		data_i =0;
+		weig =31579 -4.866*(data2/10);
+		data2 = 0;
+	tx[0] = change(weig/100000);
+	tx[1] = change(weig%100000/10000);
+	tx[2] = change(weig%10000/1000);
+	tx[3] = change(weig%1000/100);
+	tx[4] = change(weig%100/10);
+	tx[5] = '.';
+	tx[6] = change(weig%10);
+  tx[7] = 'g';
 	
-	ble_nus_string_send(&m_nus, tx,10, m_nus.accel_handles.value_handle);
-
+	ble_nus_string_send(&m_nus, tx,8, m_nus.accel_handles.value_handle);
+	} 
 	//ble_nus_string_send(&m_nus, "2", 1, m_nus.gyro_handles.value_handle);
 }
 
