@@ -403,9 +403,9 @@ static void getdistance(void)
 					else
 					{
 					if(touch[touch_max-1]>0)
-					handle.touch_sum -=70; 
+					handle.touch_sum -=35; 
 					if(touch[touch_min+1]>0)
-					handle.touch_sum -=70;
+					handle.touch_sum -=35;
 		      }
 		   }			 
 			 if(touch_min<40&&touch_max>39)

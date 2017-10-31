@@ -190,20 +190,21 @@ static void mpu6050_timeout_handler(){
 }
 
 static void bmp180_timeout_handler(){
-	static uint8_t tempe[2];
-	static uint8_t press[4];
-	long true_tempe,true_press;
-
-
-	tempe[0] = (true_tempe >> 8)&0xff;
-	tempe[1] = (true_tempe &0xff);
 	
-	press[0] = (true_press >> 24)&0xff;
-	press[1] = (true_press >> 16)&0xff;
-	press[2] = (true_press >> 8)&0xff;
-	press[3] = (true_press >> 0)&0xff;
-	ble_nus_string_send(&m_nus, tempe, 2, m_nus.tempe_handles.value_handle);
-	ble_nus_string_send(&m_nus, press, 4, m_nus.press_handles.value_handle);
+	
+  uint8_t tx[8];
+	uint16_t  touch_sum ;
+   __p_sci2a_handle->pfn->__p_getdistance();
+	 touch_sum = __p_sci2a_handle->touch_sum ;	
+	 tx[0] = change(touch_sum/10000);
+	 tx[1] = change(touch_sum%10000/1000);
+ 	 tx[2] = change(touch_sum%1000/100);
+	 tx[3] = '.';
+	 tx[4] = change(touch_sum%100/10);
+	 tx[5] = change(touch_sum%10);
+	 tx[6] = 'c';
+	 tx[7] = 'm';
+	 ble_nus_string_send(&m_nus, tx, 8, m_nus.gyro_handles.value_handle);
 	
 }
 
@@ -223,7 +224,7 @@ void accel_gyro_timeout_handler(void *p_context){
 
 void tempe_press_light_timeout_handler(void *p_context){
 	bmp180_timeout_handler();
-	ap3216c_timeout_handler();
+	//ap3216c_timeout_handler();
 }
 
 uint32_t create_sensor_timer(void){
@@ -239,7 +240,7 @@ uint32_t accel_gyro_timer_start(void){
 	return app_timer_start(accel_gyro_timer, APP_TIMER_TICKS(150, 0), NULL);
 }
 uint32_t tempe_press_light_timer_start(void){
-	return app_timer_start(tempe_press_light_timer, APP_TIMER_TICKS(1500, 0), NULL);
+	return app_timer_start(tempe_press_light_timer, APP_TIMER_TICKS(100, 0), NULL);
 }
 
 void sensor_timer_start(void){
