@@ -8,6 +8,8 @@ typedef const struct mushroom_notify_pfn
    void (*__weight_handler)(ble_mushroom_t * p_mushroom); 
 	 void (*__distance_handler)(ble_mushroom_t * p_mushroom,sci2a_handle * p_sci2a_handle);
 	 void (*__temperature_handler)(ble_mushroom_t * p_mushroom);
+	 void (*__sumled_handler)(ble_mushroom_t * p_mushroom);
+	 void (*__uart_handler)(ble_mushroom_t * p_mushroom);
 }mushroom_notify_pfn;
 	
 	

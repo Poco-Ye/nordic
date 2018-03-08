@@ -50,6 +50,9 @@
 #include "sci2a.h"
 #include "mushroom_notify.h"
 #include "MLX90615.h"
+#include "hc595.h"
+#include "uart.h"
+#include "oled.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT  1                                          /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -62,7 +65,7 @@
 #define APP_ADV_TIMEOUT_IN_SECONDS       180                                        /**< The advertising timeout in units of seconds. */
 
 #define APP_TIMER_PRESCALER              0                                          /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE          4                                          /**< Size of timer operation queues. */
+#define APP_TIMER_OP_QUEUE_SIZE          3                                          /**< Size of timer operation queues. */
 
 #define BATTERY_LEVEL_MEAS_INTERVAL      APP_TIMER_TICKS(2000, APP_TIMER_PRESCALER) /**< Battery level measurement interval (ticks). */
 #define MIN_BATTERY_LEVEL                81                                         /**< Minimum simulated battery level. */
@@ -109,6 +112,11 @@ STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                 
 #endif // BLE_DFU_APP_SUPPORT
 
 
+uint8_t sum_i;
+extern uint8_t temp[16];
+extern uint8_t receive_tmp[9];
+extern uint16_t  touch_sum;
+
 static uint16_t                          m_conn_handle = BLE_CONN_HANDLE_INVALID;   /**< Handle of the current connection. */
 static ble_bas_t                         m_bas;                                     /**< Structure used to identify the battery service. */
 static ble_hrs_t                         m_hrs;  
@@ -126,6 +134,8 @@ APP_TIMER_DEF(m_battery_timer_id);                                              
 APP_TIMER_DEF(m_distance_timer_id);                                             
 APP_TIMER_DEF(m_weight_timer_id);
 APP_TIMER_DEF(m_temperature_timer_id);
+APP_TIMER_DEF(m_sumled_timer_id);
+APP_TIMER_DEF(m_uart_timer_id);
 
 static dm_application_instance_t         m_app_handle;                              /**< Application identifier allocated by device manager */
 
@@ -217,7 +227,20 @@ static void temperature_timeout_handler(void * p_context)
 
 } 
 
+static void sumled_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    __p_mushroom_handle->pfn->__sumled_handler(&m_mushroom);
 
+} 
+
+
+static void uart_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    __p_mushroom_handle->pfn->__uart_handler(&m_mushroom);
+
+}
 
 
 /**@brief Function for the Timer initialization.
@@ -232,10 +255,10 @@ static void timers_init(void)
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
 
     // Create timers.
-    err_code = app_timer_create(&m_battery_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                battery_level_meas_timeout_handler);
-    APP_ERROR_CHECK(err_code);
+    //err_code = app_timer_create(&m_battery_timer_id,
+    //                            APP_TIMER_MODE_REPEATED,
+    //                            battery_level_meas_timeout_handler);
+    //APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_create(&m_distance_timer_id,
                                 APP_TIMER_MODE_REPEATED,
@@ -247,10 +270,22 @@ static void timers_init(void)
                                 weight_timeout_handler);
     APP_ERROR_CHECK(err_code);
 	
-	 err_code = app_timer_create(&m_temperature_timer_id,
+	//  err_code = app_timer_create(&m_temperature_timer_id,
+  //                              APP_TIMER_MODE_REPEATED,
+  //                              temperature_timeout_handler);
+  //  APP_ERROR_CHECK(err_code);
+		
+		err_code = app_timer_create(&m_sumled_timer_id,
                                 APP_TIMER_MODE_REPEATED,
-                                temperature_timeout_handler);
+                                sumled_timeout_handler);
     APP_ERROR_CHECK(err_code);
+		
+		
+	 err_code = app_timer_create(&m_uart_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                uart_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
 
 
 }
@@ -494,17 +529,17 @@ static void application_timers_start(void)
     uint32_t err_code;
 
     // Start application timers.
-    err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
-    APP_ERROR_CHECK(err_code);
+    //err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
+    //APP_ERROR_CHECK(err_code);
 
-    app_timer_start(m_distance_timer_id, APP_TIMER_TICKS(150, 0), NULL);
-    APP_ERROR_CHECK(err_code);
+    //app_timer_start(m_distance_timer_id, APP_TIMER_TICKS(30, 0), NULL);
+    //APP_ERROR_CHECK(err_code);
 	
-	  app_timer_start(m_temperature_timer_id, APP_TIMER_TICKS(50, 0), NULL);
-    APP_ERROR_CHECK(err_code);
+	  //app_timer_start(m_temperature_timer_id, APP_TIMER_TICKS(50, 0), NULL);
+    //APP_ERROR_CHECK(err_code);
 	
-//	  app_timer_start(m_weight_timer_id, APP_TIMER_TICKS(100, 0), NULL);
- //   APP_ERROR_CHECK(err_code);
+	  //app_timer_start(m_weight_timer_id, APP_TIMER_TICKS(100, 0), NULL);
+    //APP_ERROR_CHECK(err_code);
 	
 	
 //    err_code = app_timer_start(m_sensor_contact_timer_id, SENSOR_CONTACT_DETECTED_INTERVAL, NULL);
@@ -626,12 +661,12 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             // Start execution.
-            application_timers_start();
+            //application_timers_start();
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-	          app_timer_stop_all();
+	          //app_timer_stop_all();
             break;
 
         default:
@@ -862,18 +897,34 @@ static void power_manage(void)
 }
 
 
+static void adc_init(void)
+{
+  NRF_ADC->CONFIG=(ADC_CONFIG_EXTREFSEL_None<<ADC_CONFIG_EXTREFSEL_Pos)
+	|(ADC_CONFIG_PSEL_AnalogInput2<<ADC_CONFIG_PSEL_Pos)
+	|(ADC_CONFIG_REFSEL_VBG<<ADC_CONFIG_REFSEL_Pos)
+	|(ADC_CONFIG_INPSEL_AnalogInputOneThirdPrescaling<<ADC_CONFIG_INPSEL_Pos)
+	|(ADC_CONFIG_RES_10bit<<ADC_CONFIG_RES_Pos);
+
+}
+
+static void adc_start(void)
+{
+  NRF_ADC->ENABLE = 1;
+	NRF_ADC->TASKS_START =1;
+}
+
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
 {
-    uint32_t err_code;
+    uint32_t err_code,i;
+	uint8_t temp[10];
     bool erase_bonds;
 
-	
 	  __p_mushroom_handle = mushrooom_init(); 
 	  __p_sci2a_handle = sci2a_init();
-	
-	
     // Initialize.
     app_trace_init();
     timers_init();
@@ -885,15 +936,63 @@ int main(void)
     services_init();
     sensor_simulator_init();
     conn_params_init();
-
-
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
+		//hc595_init();
+	  UART_Init();
+	  oled_init();
+		OLED_Clear();
+	//	LED_ON;
+//		OLED_ShowCHinese(0,0,0);//?
+//		OLED_ShowCHinese(18,0,1);//?
+//		OLED_ShowCHinese(36,0,2);//?
+//		OLED                _ShowCHinese(54,0,3);//?
+//		OLED_ShowCHinese(72,0,4);//?
+//		OLED_ShowCHinese(90,0,5);//?
+//		OLED_ShowCHinese(108,0,6);//?
+	   
+	
+	
+	  //app_timer_start(m_uart_timer_id, APP_TIMER_TICKS(50, 0), NULL);
+    app_timer_start(m_sumled_timer_id, APP_TIMER_TICKS(200, 0), NULL);
+	  //app_timer_start(m_distance_timer_id, APP_TIMER_TICKS(300, 0), NULL);
+		app_timer_start(m_weight_timer_id, APP_TIMER_TICKS(200, 0), NULL);
+	  adc_init();
+    //hc595_drive_24(0XFF,0XF0,0X00);
+		  temp[0]='m';
 		
-     
-    // Enter main loop.
+			temp[1]='i';
+			temp[2]='l';
+			temp[3]='k';
+			temp[4]=':';
+		  temp[5]='0';
+		  temp[6]='0';
+		  temp[7]='0';
+			temp[8]='\0';
+	  OLED_ShowString(2,2,temp);
+			temp[0]='n';
+		
+			temp[1]='a';
+			temp[2]='p';
+			temp[3]=':';
+		  temp[4]='0';
+		  temp[5]='0';
+		  temp[6]='0';
+			temp[7]='\0';
+			OLED_ShowString(2,0,temp);
+		
     for (;;)
     {
         power_manage();
+			
+					for(i=0;i<8;i++)
+					{
+						receive_tmp[i]=UART_Get();
+					}
+					receive_tmp[8] = '\0';
     }
 }
+
+
+
+

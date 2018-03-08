@@ -2,17 +2,21 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 
-#define  SDA  15
-#define  SCL  16
-#define  SDA2 13
-#define  SCL2 14
-#define  DISTANCE  1310
+#define  SDA  13
+#define  SCL  14
+#define  SDA2 15
+#define  SCL2 16
+#define  DISTANCE  1220
+#define  LEFT  0X89
+#define  MIDDLE  0X81
+#define  RIGHT  0X85
 
 
 nrf_gpio_pin_pull_t config = NRF_GPIO_PIN_NOPULL ;
 
 
-uint8_t  touch_min,touch_max,touch_one = 1,touch[48];
+uint8_t  touch_min,touch_min_wait,touch_max,touch_max_wait,touch_one = 1,touch[48];
+
 uint16_t sum;
 //static uint16_t touch_sum,handle_id;
 
@@ -239,9 +243,13 @@ static void getdistance(void)
 	  nrf_gpio_cfg_output(SCL2);
 	  nrf_gpio_pin_set(SDA2);
 	  nrf_gpio_pin_set(SCL2);
+
+
+	
+	
 	   if(handle.handle_id==0)
 		 {
-				 sum = read_sci2a(0x81);
+				 sum = read_sci2a(LEFT);
 				
 				 for(i=0;i<16;i++)
 				 {
@@ -262,8 +270,10 @@ static void getdistance(void)
 							touch[i] = 0 ;
 						sum>>=1;
 				 }
-
-				 sum = read_sci2a(0x85);
+			}
+		   else if(handle.handle_id==1)
+			{
+				 sum = read_sci2a(MIDDLE);
 				 //printf("%x\n",sum);
 				 for(i=12;i<28;i++)
 				 {
@@ -284,9 +294,10 @@ static void getdistance(void)
 							touch[i] = 0 ;
 						sum>>=1;
 				 }
-				 
-				 
-				 sum = read_sci2a(0x89);
+			 }	 
+			else if(handle.handle_id==2)
+			{
+				 sum = read_sci2a(RIGHT);
 				 //printf("%x\n",sum);
 				 for(i=24;i<40;i++)
 				 {
@@ -307,13 +318,13 @@ static void getdistance(void)
 							touch[i] = 0 ;
 						sum>>=1;
 				 }
-	 }
+	     }
 
 		 
 //-------------------------------------------------//
-		else if(handle.handle_id == 1)
+		else if(handle.handle_id == 3)
 		{
-				 sum = read_sci2a2(0x81);
+				 sum = read_sci2a2(LEFT);
 				//printf("%x\n",sum);
 				 for(i=36;i<52;i++)
 				 {
@@ -334,8 +345,10 @@ static void getdistance(void)
 							touch[i] = 0 ;
 						sum>>=1;
 				 }
-
-				 sum = read_sci2a2(0x85);
+			}
+		  else if(handle.handle_id == 4)
+			{
+				 sum = read_sci2a2(MIDDLE);
 				 //printf("%x\n",sum);
 				 for(i=48;i<64;i++)
 				 {
@@ -356,9 +369,10 @@ static void getdistance(void)
 							touch[i] = 0 ;
 						sum>>=1;
 				 }
-				 
-				 
-				 sum = read_sci2a2(0x89);
+			}
+			else if(handle.handle_id == 5)
+			{	 
+				 sum = read_sci2a2(RIGHT);
 				 //printf("%x\n",sum);
 				 for(i=60;i<76;i++)
 				 {
@@ -380,10 +394,10 @@ static void getdistance(void)
 						sum>>=1;
 				 }
 		 
-	 }
+	     }
 
 		
-		else if(handle.handle_id == 2)
+		else if(handle.handle_id == 6)
 		{
 		 //printf("touch min %d touch max %d\n",touch_min,touch_max);
 		 
@@ -415,16 +429,18 @@ static void getdistance(void)
 
 	 }
 	  handle.handle_id++;
-	 if(handle.handle_id>2)
+	 if(handle.handle_id>6)
 	 {
 	   handle.handle_id = 0;
+		 touch_min_wait = touch_min;
+		 touch_max_wait = touch_max;
      touch_max = 0; 
 		 touch_min = 0; 
 
 		 touch_one = 1;
 		 
 	 }
-	 
+ 
 
 }
 
